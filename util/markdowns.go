@@ -45,34 +45,31 @@ type MarkdownResult struct {
 var markedAvailable = false
 
 func LoadMarkdown() {
+	defer func() {
+		if markedAvailable {
+			logger.Debug("[marked] is available, uses it for markdown processing")
+		} else {
+			logger.Debug("[marked] is not available, uses built-in [blackfriday] for markdown processing")
+		}
+	}()
+
 	request, err := http.NewRequest("POST", "http://localhost:8250", strings.NewReader("Pipe 大法好"))
 	if nil != err {
-		logger.Info("[marked] is not available, uses built-in [blackfriday] for markdown processing")
-
 		return
 	}
 	http.DefaultClient.Timeout = 2 * time.Second
 	response, err := http.DefaultClient.Do(request)
 	if nil != err {
-		logger.Info("[marked] is not available, uses built-in [blackfriday] for markdown processing")
-
 		return
 	}
 	defer response.Body.Close()
 	data, err := ioutil.ReadAll(response.Body)
 	if nil != err {
-		logger.Info("[marked] is not available, uses built-in [blackfriday] for markdown processing")
-
 		return
 	}
 
 	content := string(data)
 	markedAvailable = "<p>Pipe 大法好</p>\n" == content
-	if markedAvailable {
-		logger.Debug("[marked] is available, uses it for markdown processing")
-	} else {
-		logger.Debug("[marked] is not available, uses built-in [blackfriday] for markdown processing")
-	}
 }
 
 func marked(mdText string) []byte {
