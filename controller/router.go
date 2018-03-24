@@ -30,6 +30,7 @@ import (
 	"github.com/b3log/pipe/util"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
+	"io/ioutil"
 )
 
 // Logger
@@ -179,7 +180,12 @@ func MapRoutes() *gin.Engine {
 	initGroup.GET("", showInitPageAction)
 
 	ret.Static(util.PathConsoleDist, staticPath("console/dist"))
-	ret.StaticFile(util.PathChangelogs, staticPath("changelogs.html"))
+	ret.GET(util.PathChangelogs, func(c *gin.Context) {
+		content, _ := ioutil.ReadFile(staticPath("changelogs.md"))
+		mdResult := util.Markdown(string(content))
+		c.Header("Content-Type", "text/HTML;charset=UTF-8")
+		c.String(200, mdResult.ContentHTML)
+	})
 	ret.StaticFile(util.PathRobots, staticPath("theme/robots.txt"))
 	ret.NoRoute(func(c *gin.Context) {
 		notFound(c)
